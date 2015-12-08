@@ -70,6 +70,8 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
             Log.d("TAG", "Error starting camera preview: " + e.getMessage());
         }
 
+
+
         /*int dRotation = display.getRotation();
         FacialProcessing.PREVIEW_ROTATION_ANGLE angleEnum = FacialProcessing.PREVIEW_ROTATION_ANGLE.ROT_0;
 

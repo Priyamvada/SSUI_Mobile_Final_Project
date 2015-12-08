@@ -2,14 +2,19 @@ package priyamvadatiwari.p4_tiwari_priyamvada;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.MediaActionSound;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Surface;
@@ -27,13 +32,20 @@ import priyamvadatiwari.p4_tiwari_priyamvada.utils.MediaFileHandlers;
 public class NativeCameraActivity extends Activity implements Camera.PreviewCallback {
 
     Camera cameraObj;
-    Camera.ShutterCallback shutter;
     FrameLayout previewFrame;
     CameraSurfacePreview mPreview;
     MediaActionSound actionSound;
 
     SensorManager mSensorManager;
     Sensor mAccelerometer;
+    GLSurfaceView mOverlaySurface;
+
+    float[] mAccelleroOutput = null;
+    float[] mMagnetoOutput = null;
+
+    private static final int FRONT_CAMERA_INDEX = 1;
+    private static final int BACK_CAMERA_INDEX = 0;
+    private static final double g = 10;
 
     SensorEventListener mSensorListener = new SensorEventListener() {
         @Override
@@ -43,11 +55,50 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
         @Override
         public void onSensorChanged(SensorEvent event) {
             Sensor sensor = event.sensor;
-            if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-                Log.d("ACCELERO OUTPUT", event.toString());
-            }else if (sensor.getType() == Sensor.TYPE_ORIENTATION) {
-                //TODO: get values
+
+            if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)    {
+                mAccelleroOutput = event.values;
+                double xValue = Double.parseDouble(Float.toString(event.values[0])),
+                        yValue = Double.parseDouble(Float.toString(event.values[1])),
+                        xAngle, yAngle;
+                xValue = (Math.abs(xValue) > g)? g: xValue;
+                yValue = (Math.abs(yValue) > g)? g: yValue;
+                xAngle = Math.toDegrees(Math.acos(xValue / g));
+                yAngle = Math.toDegrees(Math.acos(yValue / g));
+
+                if(Math.abs(xAngle - 90)%90 > 1 && Math.abs(yAngle - 90)%90 > 1)    {
+                    Log.d("Rotation", ", thetaX: " + Double.toString(xAngle%90)
+                            + ", thetaY: " + Double.toString(yAngle%90));
+                }
             }
+            if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
+                mMagnetoOutput = event.values;
+            if (mAccelleroOutput != null && mMagnetoOutput != null) {
+                float R[] = new float[9];
+                float I[] = new float[9];
+                boolean success = SensorManager.getRotationMatrix(R, I, mAccelleroOutput, mMagnetoOutput);
+                if (success) {
+                    float orientation[] = new float[3];
+                    SensorManager.getOrientation(R, orientation);
+                    Log.d("ORIENTATION OUTPUT", ", 0: " + Float.toString(orientation[0])
+                            + ", 1: " + Float.toString(orientation[1])
+                            + ", 2: " + Float.toString(orientation[2]));
+                }
+            }
+            /*if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                Log.d("ACCELERO OUTPUT", ", 0: " + Float.toString(event.values[0])
+                        + ", 1: " + Float.toString(event.values[1])
+                        + ", 2: " + Float.toString(event.values[2]));
+                float[] rotation = new float[9], orientation = new float[3];
+                SensorManager.getOrientation(rotation, orientation);
+                Log.d("ORIENTATION OUTPUT", ", 0: " + Float.toString(orientation[0])
+                        + ", 1: " + Float.toString(orientation[1])
+                        + ", 2: " + Float.toString(orientation[2]));
+            }
+            if (sensor.getType() == Sensor.TYPE_ORIENTATION) {
+                Log.d("ORIENTATION OUTPUT", ", 0: " + Float.toString(event.values[0])
+                        + ", 1: " + Float.toString(event.values[1]));
+            }*/
         }
 
     };
@@ -75,18 +126,15 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
         }
     };
 
-
-    private static final int FRONT_CAMERA_INDEX = 1;
-    private static final int BACK_CAMERA_INDEX = 0;
-
     private void initSensors()  {
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-        initAccelerometer(mSensorManager);
+        initSensor(mSensorManager, mAccelerometer, Sensor.TYPE_ACCELEROMETER);
+//        initSensor(mSensorManager, mMagnetometer, Sensor.TYPE_MAGNETIC_FIELD);
     }
 
-    private void initAccelerometer(SensorManager sensorManager)   {
-        mAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mSensorManager.registerListener(mSensorListener, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+    private void initSensor(SensorManager sensorManager, Sensor sensor, int sensorType)   {
+        sensor = sensorManager.getDefaultSensor(sensorType);
+        mSensorManager.registerListener(mSensorListener, sensor, SensorManager.SENSOR_DELAY_GAME);
     }
 
     private static Camera getCameraInstance(int cameraIndex){
@@ -146,12 +194,22 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int width = size.x;
+        int height = size.y;
+        Paint guidePaint = new Paint();
+        guidePaint.setColor(Color.RED);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         previewFrame = (FrameLayout) findViewById(R.id.camera_preview_frame);
         startCamera(previewFrame);
         actionSound = new MediaActionSound();
         actionSound.load(MediaActionSound.SHUTTER_CLICK);
+
+        mOverlaySurface = (GLSurfaceView)findViewById(R.id.overlay_surface);
 
         this.initSensors();
 

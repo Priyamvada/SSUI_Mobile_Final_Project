@@ -2,6 +2,7 @@ package priyamvadatiwari.p4_tiwari_priyamvada;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
@@ -38,7 +39,7 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
 
     SensorManager mSensorManager;
     Sensor mAccelerometer;
-    GLSurfaceView mOverlaySurface;
+    OverlaySurfaceView mOverlaySurface;
 
     float[] mAccelleroOutput = null;
     float[] mMagnetoOutput = null;
@@ -63,12 +64,15 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
                         xAngle, yAngle;
                 xValue = (Math.abs(xValue) > g)? g: xValue;
                 yValue = (Math.abs(yValue) > g)? g: yValue;
-                xAngle = Math.toDegrees(Math.acos(xValue / g));
-                yAngle = Math.toDegrees(Math.acos(yValue / g));
+                xAngle = Math.toDegrees(Math.asin(xValue / g));
+                yAngle = Math.toDegrees(Math.asin(yValue / g));
 
                 if(Math.abs(xAngle - 90)%90 > 1 && Math.abs(yAngle - 90)%90 > 1)    {
-                    Log.d("Rotation", ", thetaX: " + Double.toString(xAngle%90)
-                            + ", thetaY: " + Double.toString(yAngle%90));
+                    mOverlaySurface.setRendererAngles(Math.abs(xAngle), Math.abs(yAngle));
+                    Log.d("Rotation", ", thetaX: " + Double.toString(xAngle)
+                            + ", thetaY: " + Double.toString(yAngle));
+                }   else    {
+                    mOverlaySurface.setRendererAngles(0,0);
                 }
             }
             if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
@@ -194,6 +198,7 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setRequestedOrientation( ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT );
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
@@ -209,7 +214,7 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
         actionSound = new MediaActionSound();
         actionSound.load(MediaActionSound.SHUTTER_CLICK);
 
-        mOverlaySurface = (GLSurfaceView)findViewById(R.id.overlay_surface);
+        mOverlaySurface = (OverlaySurfaceView)findViewById(R.id.overlay_surface);
 
         this.initSensors();
 

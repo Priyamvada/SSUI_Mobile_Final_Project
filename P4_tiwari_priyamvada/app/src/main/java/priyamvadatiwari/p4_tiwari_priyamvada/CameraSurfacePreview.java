@@ -30,7 +30,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         mContext = context;
         mHolder = getHolder();
         mHolder.addCallback(this);
-        mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        getHolder().setType( SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS );
     }
 
     public CameraSurfacePreview(Context context) {

@@ -3,6 +3,7 @@ package priyamvadatiwari.p4_tiwari_priyamvada;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -25,6 +26,8 @@ public class IntentBasedCameraActivity extends Activity {
     private static final int CAPTURE_ACTION_VIDEO_CAM_REQUEST_CODE = 300;
     public static final int MEDIA_TYPE_IMAGE = 1;
     public static final int MEDIA_TYPE_VIDEO = 2;
+
+    GLSurfaceView mOverlaySurface;
 
     private Uri fileUri, ImageFileUri, VideoFileUri;
 
@@ -68,6 +71,7 @@ public class IntentBasedCameraActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mOverlaySurface = (GLSurfaceView)findViewById(R.id.overlay_surface);
 
         Intent intent = new Intent(MediaStore.INTENT_ACTION_VIDEO_CAMERA);
         // create Intent to take a picture and return control to the calling application

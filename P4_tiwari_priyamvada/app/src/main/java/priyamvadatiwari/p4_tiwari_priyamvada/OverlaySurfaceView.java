@@ -17,9 +17,24 @@ public class OverlaySurfaceView extends GLSurfaceView {
         super(context, attrs);
         this.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         this.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-        mRenderer = new OverlayRenderer();
+        mRenderer = new OverlayRenderer(0, 0, this.getWidth(), this.getHeight());
         setRenderer(mRenderer);
 
+    }
+
+    public OverlaySurfaceView (Context context, AttributeSet attrs, double rotationX, double rotationY)
+    {
+        super(context, attrs);
+        this.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+        this.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+        mRenderer = new OverlayRenderer(rotationX, rotationY);
+        setRenderer(mRenderer);
+
+    }
+
+    public void setRendererAngles(double rotationX, double rotationY)    {
+        this.mRenderer.setThetaX((float)rotationX);
+        this.mRenderer.setThetaY((float)rotationY);
     }
 
 }

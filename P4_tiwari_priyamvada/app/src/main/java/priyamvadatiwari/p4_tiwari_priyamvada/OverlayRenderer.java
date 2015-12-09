@@ -11,11 +11,38 @@ import javax.microedition.khronos.opengles.GL10;
 public class OverlayRenderer implements GLSurfaceView.Renderer{
 
     private OverlayGuides mGuides;
+    private float mThetaX, mThetaY;
+
+    public OverlayRenderer(float xDeg, float yDeg, int w, int h)   {
+        super();
+        mThetaX = xDeg;
+        mThetaY = yDeg;
+    }
+
+    public OverlayRenderer(double rotationX, double rotationY)   {
+        super();
+    }
+
+    public float getThetaX() {
+        return mThetaX;
+    }
+
+    public float getThetaY() {
+        return mThetaY;
+    }
+
+    public void setThetaX(float xDeg) {
+        mThetaX = xDeg;
+    }
+
+    public void setThetaY(float yDeg) {
+        mThetaY = yDeg;
+    }
 
     @Override
     public void onSurfaceChanged(GL10 gl10, int w, int h)   {
-        mGuides = new OverlayGuides(0.5f, 1, 0, 0);
-        gl10.glViewport(0, 0, w, h);
+        mGuides = new OverlayGuides(0.004f, 0, 0.5f, 1, w, h);
+        gl10.glViewport((int) mThetaX, (int) mThetaY, w, h);
         // for a fixed camera, set the projection too
         float ratio = (float) w / h;
         gl10.glMatrixMode(GL10.GL_PROJECTION);
@@ -32,10 +59,13 @@ public class OverlayRenderer implements GLSurfaceView.Renderer{
 
     @Override
     public void onDrawFrame(GL10 gl10) {
-        gl10.glClearColor(0f, 0f, 0f, 0f );
-        gl10.glClear( GL10.GL_COLOR_BUFFER_BIT );
+        gl10.glClearColor(0f, 0f, 0f, 0f);
+        gl10.glClear(GL10.GL_COLOR_BUFFER_BIT);
+        gl10.glMatrixMode(GL10.GL_MODELVIEW);
         gl10.glLoadIdentity();
         gl10.glTranslatef(0.0f, 0.0f, -5.0f);
+        gl10.glRotatef(Math.min(mThetaX, mThetaY), 0, 0, 1);
+//        gl10.glRotatef(mThetaX, 0, 0, 1);
         mGuides.draw(gl10);
     }
 }

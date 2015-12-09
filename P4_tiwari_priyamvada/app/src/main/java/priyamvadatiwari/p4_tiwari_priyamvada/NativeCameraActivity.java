@@ -42,6 +42,7 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
     TextView captureText;
     CameraSurfacePreview mPreview;
     MediaActionSound actionSound;
+    MediaPlayer mediaBuffer;
     boolean mAligned = false;
 
     SensorManager mSensorManager;
@@ -96,8 +97,8 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
                     mOverlaySurface.setAligned(false);
                     if(! mAligned)  {
                         mAligned = true;
-                        MediaPlayer mediaPlayer = MediaPlayer.create(NativeCameraActivity.this, R.raw.capture_command_perfect);
-                        mediaPlayer.start();
+                        mediaBuffer = MediaPlayer.create(NativeCameraActivity.this, R.raw.capture_command_perfect);
+                        mediaBuffer.start();
                     }
                 }
             }

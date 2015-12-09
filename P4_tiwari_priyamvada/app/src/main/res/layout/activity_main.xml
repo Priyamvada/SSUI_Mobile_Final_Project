@@ -25,16 +25,6 @@
             android:text="Flip"
             android:layout_gravity="start|bottom" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/capture_indicator"
-            android:textAppearance="?android:attr/textAppearanceButton"
-            android:textColor="#00ccff"
-            android:text="@string/capture_indicator"
-            android:id="@+id/capture_indicator"
-            android:layout_gravity="center_horizontal|center_vertical" />
-
 
     </FrameLayout>
 </RelativeLayout>

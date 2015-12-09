@@ -14,6 +14,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.MediaActionSound;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
@@ -41,6 +42,7 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
     TextView captureText;
     CameraSurfacePreview mPreview;
     MediaActionSound actionSound;
+    boolean mAligned = false;
 
     SensorManager mSensorManager;
     Sensor mAccelerometer;
@@ -86,9 +88,17 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
                         || Math.abs(xAngle)%90 <= 2 || Math.abs(yAngle)%90 <= 2)    {
                     mPreview.setAligned(true);
                     mOverlaySurface.setAligned(true);
+                    if(mAligned)  {
+                        mAligned = false;
+                    }
                 }   else    {
                     mPreview.setAligned(false);
                     mOverlaySurface.setAligned(false);
+                    if(! mAligned)  {
+                        mAligned = true;
+                        MediaPlayer mediaPlayer = MediaPlayer.create(NativeCameraActivity.this, R.raw.capture_command_perfect);
+                        mediaPlayer.start();
+                    }
                 }
             }
             if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
@@ -233,8 +243,6 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
         actionSound.load(MediaActionSound.SHUTTER_CLICK);
 
         mOverlaySurface = (OverlaySurfaceView)findViewById(R.id.overlay_surface);
-
-        captureText = (TextView) findViewById(R.id.capture_indicator);
 
         this.initSensors();
 

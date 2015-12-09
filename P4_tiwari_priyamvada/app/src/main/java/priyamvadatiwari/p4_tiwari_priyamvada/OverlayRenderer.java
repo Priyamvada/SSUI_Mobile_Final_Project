@@ -12,7 +12,7 @@ public class OverlayRenderer implements GLSurfaceView.Renderer{
 
     private OverlayGuides mGuides;
     private float mThetaX, mThetaY;
-    private float red = 0, green = 0.25f, blue = 0.5f;
+    private float red = 0, green = 0.25f, blue = 0.5f, alphaVal = 0.01f;
     boolean mAligned = false;
 
     public OverlayRenderer(float xDeg, float yDeg, int w, int h)   {
@@ -53,11 +53,12 @@ public class OverlayRenderer implements GLSurfaceView.Renderer{
 
     @Override
     public void onSurfaceChanged(GL10 gl10, int w, int h)   {
-        float alphaVal = 0.1f;
         if(mAligned)    {
             alphaVal = 0.01f;
             green = 0.10f;
             blue = 0.2f;
+        }   else {
+            alphaVal = 0.01f;
         }
         mGuides = new OverlayGuides(0.004f, red, green, blue, alphaVal, w, h);
         gl10.glViewport((int) mThetaX, (int) mThetaY, w, h);
@@ -83,7 +84,6 @@ public class OverlayRenderer implements GLSurfaceView.Renderer{
         gl10.glLoadIdentity();
         gl10.glTranslatef(0f, -0.3f, -5.0f);
         gl10.glRotatef(Math.min(mThetaX, mThetaY), 0, 0, 1);
-//        gl10.glRotatef(mThetaX, 0, 0, 1);
         mGuides.draw(gl10);
     }
 }

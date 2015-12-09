@@ -3,6 +3,8 @@ package priyamvadatiwari.p4_tiwari_priyamvada;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
@@ -12,7 +14,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.MediaActionSound;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
@@ -20,7 +21,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Surface;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,6 +38,7 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
 
     Camera cameraObj;
     FrameLayout previewFrame;
+    TextView captureText;
     CameraSurfacePreview mPreview;
     MediaActionSound actionSound;
 
@@ -67,12 +72,23 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
                 xAngle = Math.toDegrees(Math.asin(xValue / g));
                 yAngle = Math.toDegrees(Math.asin(yValue / g));
 
-                if(Math.abs(xAngle - 90)%90 > 1 && Math.abs(yAngle - 90)%90 > 1)    {
+                if(90 - Math.abs(xAngle)%90 <= 1 || 90 - Math.abs(yAngle)%90 <= 1
+                        || Math.abs(xAngle)%90 <= 1 || Math.abs(yAngle)%90 <= 1)    {
+
+                    mOverlaySurface.setRendererAngles(0, 0);
+
+                }   else    {
                     mOverlaySurface.setRendererAngles(Math.abs(xAngle), Math.abs(yAngle));
                     Log.d("Rotation", ", thetaX: " + Double.toString(xAngle)
                             + ", thetaY: " + Double.toString(yAngle));
+                }
+                if(90 - Math.abs(xAngle)%90 <= 2 || 90 - Math.abs(yAngle)%90 <= 2
+                        || Math.abs(xAngle)%90 <= 2 || Math.abs(yAngle)%90 <= 2)    {
+                    mPreview.setAligned(true);
+                    mOverlaySurface.setAligned(true);
                 }   else    {
-                    mOverlaySurface.setRendererAngles(0,0);
+                    mPreview.setAligned(false);
+                    mOverlaySurface.setAligned(false);
                 }
             }
             if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
@@ -198,6 +214,8 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
         setRequestedOrientation( ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT );
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
@@ -207,14 +225,16 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
         Paint guidePaint = new Paint();
         guidePaint.setColor(Color.RED);
 
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         previewFrame = (FrameLayout) findViewById(R.id.camera_preview_frame);
         startCamera(previewFrame);
         actionSound = new MediaActionSound();
         actionSound.load(MediaActionSound.SHUTTER_CLICK);
 
         mOverlaySurface = (OverlaySurfaceView)findViewById(R.id.overlay_surface);
+
+        captureText = (TextView) findViewById(R.id.capture_indicator);
 
         this.initSensors();
 

@@ -12,6 +12,8 @@ public class OverlayRenderer implements GLSurfaceView.Renderer{
 
     private OverlayGuides mGuides;
     private float mThetaX, mThetaY;
+    private float red = 0, green = 0.25f, blue = 0.5f;
+    boolean mAligned = false;
 
     public OverlayRenderer(float xDeg, float yDeg, int w, int h)   {
         super();
@@ -39,9 +41,25 @@ public class OverlayRenderer implements GLSurfaceView.Renderer{
         mThetaY = yDeg;
     }
 
+    public void setAligned(boolean aligned) {
+        if(mAligned != aligned) {
+            mAligned = aligned;
+        }
+    }
+
+    public boolean getAligned() {
+        return mAligned;
+    }
+
     @Override
     public void onSurfaceChanged(GL10 gl10, int w, int h)   {
-        mGuides = new OverlayGuides(0.004f, 0, 0.5f, 1, w, h);
+        float alphaVal = 0.1f;
+        if(mAligned)    {
+            alphaVal = 0.01f;
+            green = 0.10f;
+            blue = 0.2f;
+        }
+        mGuides = new OverlayGuides(0.004f, red, green, blue, alphaVal, w, h);
         gl10.glViewport((int) mThetaX, (int) mThetaY, w, h);
         // for a fixed camera, set the projection too
         float ratio = (float) w / h;
@@ -63,7 +81,7 @@ public class OverlayRenderer implements GLSurfaceView.Renderer{
         gl10.glClear(GL10.GL_COLOR_BUFFER_BIT);
         gl10.glMatrixMode(GL10.GL_MODELVIEW);
         gl10.glLoadIdentity();
-        gl10.glTranslatef(0.0f, 0.0f, -5.0f);
+        gl10.glTranslatef(0f, -0.3f, -5.0f);
         gl10.glRotatef(Math.min(mThetaX, mThetaY), 0, 0, 1);
 //        gl10.glRotatef(mThetaX, 0, 0, 1);
         mGuides.draw(gl10);

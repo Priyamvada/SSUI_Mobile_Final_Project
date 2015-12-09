@@ -1,6 +1,12 @@
 package priyamvadatiwari.p4_tiwari_priyamvada;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.Display;
@@ -20,6 +26,8 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
     private SurfaceHolder mHolder;
     private Camera mCamera;
     Context mContext;
+    Paint mCanvasPaint, successPaint;
+    boolean mAligned;
 
     Display display;
     private static int displayAngle;
@@ -30,6 +38,16 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         mContext = context;
         mHolder = getHolder();
         mHolder.addCallback(this);
+        mAligned = true;
+
+        mCanvasPaint = new Paint();
+        mCanvasPaint.setColor(Color.LTGRAY);
+        mCanvasPaint.setStrokeWidth(1);
+
+        successPaint = new Paint();
+        successPaint.setColor(Color.CYAN);
+        successPaint.setStrokeWidth(4);
+
         getHolder().setType( SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS );
     }
 
@@ -38,7 +56,15 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         mContext = context;
         mHolder = getHolder();
         mHolder.addCallback(this);
+        mCanvasPaint = new Paint();
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+    }
+
+    public void setAligned(boolean aligned) {
+        if(mAligned != aligned) {
+            mAligned = aligned;
+            this.postInvalidate();
+        }
     }
 
     @Override
@@ -70,42 +96,13 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
             Log.d("TAG", "Error starting camera preview: " + e.getMessage());
         }
 
-
-
-        /*int dRotation = display.getRotation();
-        FacialProcessing.PREVIEW_ROTATION_ANGLE angleEnum = FacialProcessing.PREVIEW_ROTATION_ANGLE.ROT_0;
-
-        switch (dRotation)  {
-            case 0: // Device is not rotated
-                displayAngle = 90;
-                angleEnum = FacialProcessing.PREVIEW_ROTATION_ANGLE.ROT_90;
-                break;
-            case 1: // Landscape Left
-                displayAngle = 0;
-                angleEnum = FacialProcessing.PREVIEW_ROTATION_ANGLE.ROT_0;
-                break;
-            case 2: //Device Upside down
-                displayAngle = 270;
-                angleEnum = FacialProcessing.PREVIEW_ROTATION_ANGLE.ROT_270;
-                break;
-            case 3: //Landscape Right
-                displayAngle = 180;
-                angleEnum = FacialProcessing.PREVIEW_ROTATION_ANGLE.ROT_180;
-                break;
-            default:
-                displayAngle = 90;
-                angleEnum = FacialProcessing.PREVIEW_ROTATION_ANGLE.ROT_90;
-                break;
-        }
-
-        mCamera.setDisplayOrientation(displayAngle);*/
-
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder)    {
 
         try {
+            setWillNotDraw(false);
             mCamera.setPreviewDisplay(holder);
             mCamera.startPreview();
         }
@@ -119,5 +116,17 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         mCamera.stopPreview();
+    }
+
+    @Override
+    public void draw(Canvas canvas) {
+        super.draw(canvas);
+        if(!mAligned)   {
+            canvas.drawLine(0, 0, this.getWidth(), this.getHeight(), mCanvasPaint);
+        }   else    {
+            canvas.drawLine(this.getWidth() * 0.25f, this.getHeight() * 0.25f, this.getWidth() * 0.75f, this.getHeight() * 0.75f, successPaint);
+            canvas.drawLine(this.getWidth() * 0.75f, this.getHeight() * 0.25f, this.getWidth() * 0.25f, this.getHeight() * 0.75f, successPaint);
+        }
+        canvas.save();
     }
 }

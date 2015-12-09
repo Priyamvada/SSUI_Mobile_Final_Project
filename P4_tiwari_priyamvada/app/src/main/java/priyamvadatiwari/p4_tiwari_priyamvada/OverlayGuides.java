@@ -17,21 +17,13 @@ public class OverlayGuides {
             1.0f, -1.0f, 0.0f,  // 2, Bottom Right
     };
 
-    private float verticalVertices[] = {
-            -1.0f,  1.0f, 0.0f,  // 0, Top Left
-            -1.0f, -1.0f, 0.0f, // 1, Bottom left
-    }, horizontalVertices[] = {
-            -1.0f, -1.0f, 0.0f,  // 1, Bottom Left
-            1.0f, -1.0f, 0.0f,  // 2, Bottom Right
-    };
-
 
     // Our vertex buffer.
     private FloatBuffer verticalVtxBuffer, horizontalVtxBuffer;
 
-    private float red, blue, green;
+    private float red, blue, green, alpha;
 
-    public OverlayGuides(float scale, float red, float green, float blue, int w, int h) {
+    public OverlayGuides(float scale, float red, float green, float blue, float alpha, int w, int h) {
         vertices = new float[] {
                 -w * scale, -h * scale, 0.0f, // V1 - first vertex
                 w * scale, -h * scale, 0.0f, // V2 - second vertex
@@ -40,6 +32,7 @@ public class OverlayGuides {
         this.red = red;
         this.green = green;
         this.blue = blue;
+        this.alpha = alpha;
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(3 * 3 * 4);
         byteBuffer.order(ByteOrder.nativeOrder());
         verticalVtxBuffer = byteBuffer.asFloatBuffer();
@@ -48,13 +41,13 @@ public class OverlayGuides {
     }
 
     /**
-     * This function draws our square on screen.
+     * This function draws triangle on screen.
      * @param gl
      */
     public void draw(GL10 gl) {
         gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
         // set the colour for the triangle
-        gl.glColor4f(red, green, blue, 0.2f);
+        gl.glColor4f(red, green, blue, alpha);
         // Point to our vertex buffer
         gl.glVertexPointer(3, GL10.GL_FLOAT, 0, verticalVtxBuffer);
         // Draw the vertices as triangle strip

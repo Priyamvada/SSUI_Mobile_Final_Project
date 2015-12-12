@@ -33,6 +33,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import priyamvadatiwari.p4_tiwari_priyamvada.utils.MediaFileHandlers;
+import priyamvadatiwari.p4_tiwari_priyamvada.utils.Statistics;
 
 
 public class NativeCameraActivity extends Activity implements Camera.PreviewCallback {
@@ -57,6 +58,10 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
     private static final double g = 10;
 
     SensorEventListener mSensorListener = new SensorEventListener() {
+        private int acceleroSensorCounter = 0;
+        private int acceleroSensorPrecision = 100;
+        private float acceleroALPHA = 0.2f;
+
         @Override
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
         }
@@ -65,28 +70,25 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
         public void onSensorChanged(SensorEvent event) {
             Sensor sensor = event.sensor;
 
-            if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)    {
-                mAccelleroOutput = event.values;
-                double xValue = Double.parseDouble(Float.toString(event.values[0])),
-                        yValue = Double.parseDouble(Float.toString(event.values[1])),
+            if (sensor.getType() == Sensor.TYPE_ACCELEROMETER)    {
+                acceleroSensorCounter++;
+                mAccelleroOutput = Statistics.lowPass(event.values, mAccelleroOutput, acceleroALPHA);
+                double xValue = Double.parseDouble(Float.toString(mAccelleroOutput[0])),
+                        yValue = Double.parseDouble(Float.toString(mAccelleroOutput[1])),
                         xAngle, yAngle;
                 xValue = (Math.abs(xValue) > g)? g: xValue;
                 yValue = (Math.abs(yValue) > g)? g: yValue;
                 xAngle = Math.toDegrees(Math.asin(xValue / g));
                 yAngle = Math.toDegrees(Math.asin(yValue / g));
 
-                if(90 - Math.abs(xAngle)%90 <= 1 || 90 - Math.abs(yAngle)%90 <= 1
-                        || Math.abs(xAngle)%90 <= 1 || Math.abs(yAngle)%90 <= 1)    {
-
+                if( this.angleInThreshold(xAngle, 1) || this.angleInThreshold(yAngle, 1))    {
                     mOverlaySurface.setRendererAngles(0, 0);
-
                 }   else    {
                     mOverlaySurface.setRendererAngles(Math.abs(xAngle), Math.abs(yAngle));
                     Log.d("Rotation", ", thetaX: " + Double.toString(xAngle)
                             + ", thetaY: " + Double.toString(yAngle));
                 }
-                if(90 - Math.abs(xAngle)%90 <= 2 || 90 - Math.abs(yAngle)%90 <= 2
-                        || Math.abs(xAngle)%90 <= 2 || Math.abs(yAngle)%90 <= 2)    {
+                if( this.angleInThreshold(xAngle, 1) || this.angleInThreshold(yAngle, 1))    {
                     mPreview.setAligned(true);
                     mOverlaySurface.setAligned(true);
                     if(mAligned)  {
@@ -97,12 +99,16 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
                     mOverlaySurface.setAligned(false);
                     if(! mAligned)  {
                         mAligned = true;
-                        mediaBuffer = MediaPlayer.create(NativeCameraActivity.this, R.raw.capture_command_perfect);
-                        mediaBuffer.start();
+
+                        if(acceleroSensorCounter > acceleroSensorPrecision) {
+                            mediaBuffer = MediaPlayer.create(NativeCameraActivity.this, R.raw.capture_command_perfect);
+                            mediaBuffer.start();
+                            acceleroSensorCounter = 0;
+                        }
                     }
                 }
             }
-            if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
+            if (sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
                 mMagnetoOutput = event.values;
             if (mAccelleroOutput != null && mMagnetoOutput != null) {
                 float R[] = new float[9];
@@ -130,6 +136,13 @@ public class NativeCameraActivity extends Activity implements Camera.PreviewCall
                 Log.d("ORIENTATION OUTPUT", ", 0: " + Float.toString(event.values[0])
                         + ", 1: " + Float.toString(event.values[1]));
             }*/
+        }
+
+        private boolean angleInThreshold(double angle, float threshold)  {
+            if(90 - Math.abs(angle)%90 <= threshold || Math.abs(angle)%90 <= threshold)    {
+                return true;
+            }
+            return false;
         }
 
     };
